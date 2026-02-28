@@ -96,7 +96,6 @@ jobs:
           git clone --depth=1 --single-branch --branch $WRT_BRANCH $WRT_REPO ./wrt/
           cd ./wrt/
           echo "WRT_HASH=$(git log -1 --pretty=format:'%h')" >> $GITHUB_ENV
-          # 移除国内下载源
           PROJECT_MIRRORS_FILE="./scripts/projectsmirrors.json"
           if [ -f "$PROJECT_MIRRORS_FILE" ]; then
             sed -i '/.cn\//d; /tencent/d; /aliyun/d' "$PROJECT_MIRRORS_FILE"
@@ -189,22 +188,20 @@ jobs:
         run: |
           cd ./wrt/
           mkdir -p ./upload/
+          # 复制配置文件
           cp -f ./.config ./upload/Config-"$WRT_CONFIG"-"$WRT_INFO"-"$WRT_BRANCH"-"$WRT_DATE".txt
           
           if [[ $WRT_TEST != 'true' ]]; then
-            echo "WRT_KVER=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^kernel - \K[\d\.]+' {} \;)" >> $GITHUB_ENV
+            # 提取内核版本和插件列表
+            echo "WRT_KVER=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^kernel - \K[\d\.]+' {} \; | head -n 1)" >> $GITHUB_ENV
             echo "WRT_LIST=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^luci-(app|theme)[^ ]*' {} \; | tr '\n' ' ')" >> $GITHUB_ENV
             
+            # 删除多余的描述文件
             find ./bin/targets/ -iregex ".*\(buildinfo\|json\|sha256sums\|packages\)$" -exec rm -rf {} +
             
-            for FILE in $(find ./bin/targets/ -type f -iname "*$WRT_TARGET*") ; do
-              EXT=$(basename $FILE | cut -d '.' -f 2-)
-              NAME=$(basename $FILE | cut -d '.' -f 1)
-              NEW_FILE="immortalwrt-qualcommax-ipq60xx-$(echo "$NAME" | cut -d '-' -f 1)-$(echo "$NAME" | cut -d '-' -f 2-).$EXT"
-              mv -f $FILE ./upload/$NEW_FILE
-            done
+            # 方案 A：直接移动固件，保留原名
+            find ./bin/targets/ -type f -iname "*$WRT_TARGET*" -exec mv -f {} ./upload/ \;
             
-            find ./bin/targets/ -type f -exec mv -f {} ./upload/ \;
             make clean -j$(nproc)
           fi
 
