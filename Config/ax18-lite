@@ -1,0 +1,46 @@
+# 设备平台
+CONFIG_TARGET_qualcommax=y
+CONFIG_TARGET_qualcommax_ipq60xx=y
+
+# 设备列表：仅选择 CMIOT AX18
+CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_cmiot_ax18=y
+# 明确禁用其他设备以防万一
+# CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_anysafe_e1 is not set
+# CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_glinet_gl-ax1800 is not set
+# CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_glinet_gl-axt1800 is not set
+# CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_jdcloud_re-cs-02 is not set
+# CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_jdcloud_re-cs-07 is not set
+# CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_jdcloud_re-ss-01 is not set
+# CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_link_nn6000-v1 is not set
+# CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_link_nn6000-v2 is not set
+# CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_linksys_mr7350 is not set
+# CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_linksys_mr7500 is not set
+# CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_philips_ly1800 is not set
+# CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_qihoo_360v6 is not set
+# CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_redmi_ax5 is not set
+# CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_redmi_ax5-jdcloud is not set
+# CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_sy_y6010 is not set
+# CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_xiaomi_ax1800 is not set
+# CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_zn_m2 is not set
+
+# 关闭 WiFi 驱动和固件
+CONFIG_PACKAGE_kmod-ath11k=n
+CONFIG_PACKAGE_kmod-ath11k-ahb=n
+CONFIG_PACKAGE_kmod-ath11k-pci=n
+CONFIG_PACKAGE_ath11k-firmware-ipq6018=n
+CONFIG_PACKAGE_ath11k-firmware-qcn9074=n
+CONFIG_PACKAGE_wpad-openssl=n
+CONFIG_PACKAGE_hostapd-common=n
+
+# 开启 IPv6
+CONFIG_IPV6=y
+
+# 开启 UPnP
+CONFIG_PACKAGE_miniupnpd=y
+CONFIG_PACKAGE_luci-app-upnp=y
+
+# 开启 HomeProxy
+CONFIG_PACKAGE_luci-app-homeproxy=y
+
+# 设置主题为 Bootstrap
+CONFIG_PACKAGE_luci-theme-bootstrap=y
