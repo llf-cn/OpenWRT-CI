@@ -1,4 +1,4 @@
-#云编译公用核心
+# 云编译公用核心
 name: WRT-CORE
 
 on:
@@ -199,47 +199,47 @@ jobs:
           echo "======================="
 
       # Package Firmware 步骤（修改固件名称）
-- name: Package Firmware
-  run: |
-    cd ./wrt/ && mkdir ./upload/
+      - name: Package Firmware
+        run: |
+          cd ./wrt/ && mkdir ./upload/
 
-    cp -f ./.config ./upload/Config-"$WRT_CONFIG"-"$WRT_INFO"-"$WRT_BRANCH"-"$WRT_DATE".txt
+          cp -f ./.config ./upload/Config-"$WRT_CONFIG"-"$WRT_INFO"-"$WRT_BRANCH"-"$WRT_DATE".txt
 
-    if [[ $WRT_TEST != 'true' ]]; then
-      echo "WRT_KVER=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^kernel - \K[\d\.]+' {} \;)" >> $GITHUB_ENV
-      echo "WRT_LIST=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^luci-(app|theme)[^ ]*' {} \; | tr '\n' ' ')" >> $GITHUB_ENV
+          if [[ $WRT_TEST != 'true' ]]; then
+            echo "WRT_KVER=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^kernel - \K[\d\.]+' {} \;)" >> $GITHUB_ENV
+            echo "WRT_LIST=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^luci-(app|theme)[^ ]*' {} \; | tr '\n' ' ')" >> $GITHUB_ENV
 
-      find ./bin/targets/ -iregex ".*\(buildinfo\|json\|sha256sums\|packages\)$" -exec rm -rf {} +
+            find ./bin/targets/ -iregex ".*\(buildinfo\|json\|sha256sums\|packages\)$" -exec rm -rf {} +
 
-      for FILE in $(find ./bin/targets/ -type f -iname "*$WRT_TARGET*") ; do
-        EXT=$(basename $FILE | cut -d '.' -f 2-)
-        NAME=$(basename $FILE | cut -d '.' -f 1)  # 直接使用文件名（不含扩展名）
-        # 构建新固件名称：immortalwrt-qualcommax-ipq60xx-设备名-squashfs-sysupgrade.bin
-        NEW_FILE="immortalwrt-$WRT_TARGET-ipq60xx-$(echo "$NAME" | cut -d '-' -f 1)-$(echo "$NAME" | cut -d '-' -f 2-).$EXT"
-        mv -f $FILE ./upload/$NEW_FILE
-      done
+            for FILE in $(find ./bin/targets/ -type f -iname "*$WRT_TARGET*") ; do
+              EXT=$(basename $FILE | cut -d '.' -f 2-)
+              NAME=$(basename $FILE | cut -d '.' -f 1)  # 直接使用文件名（不含扩展名）
+              # 构建新固件名称：immortalwrt-qualcommax-ipq60xx-设备名-squashfs-sysupgrade.bin
+              NEW_FILE="immortalwrt-$WRT_TARGET-ipq60xx-$(echo "$NAME" | cut -d '-' -f 1)-$(echo "$NAME" | cut -d '-' -f 2-).$EXT"
+              mv -f $FILE ./upload/$NEW_FILE
+            done
 
-      find ./bin/targets/ -type f -exec mv -f {} ./upload/ \;
+            find ./bin/targets/ -type f -exec mv -f {} ./upload/ \;
 
-      make clean -j$(nproc)
-    fi
+            make clean -j$(nproc)
+          fi
 
-# Release Firmware 步骤（删除冗余描述）
-- name: Release Firmware
-  uses: softprops/action-gh-release@master
-  with:
-    tag_name: ${{env.WRT_CONFIG}}-${{env.WRT_INFO}}-${{env.WRT_BRANCH}}-${{env.WRT_DATE}}
-    files: ./wrt/upload/*.*
-    body: |
-      源码：${{env.WRT_REPO}}
-      分支：${{env.WRT_BRANCH}}
-      提交：${{env.WRT_HASH}}
+      # Release Firmware 步骤（删除冗余描述）
+      - name: Release Firmware
+        uses: softprops/action-gh-release@master
+        with:
+          tag_name: ${{env.WRT_CONFIG}}-${{env.WRT_INFO}}-${{env.WRT_BRANCH}}-${{env.WRT_DATE}}
+          files: ./wrt/upload/*.*
+          body: |
+            源码：${{env.WRT_REPO}}
+            分支：${{env.WRT_BRANCH}}
+            提交：${{env.WRT_HASH}}
 
-      配置：${{env.WRT_CONFIG}}
-      平台：${{env.WRT_TARGET}}
+            配置：${{env.WRT_CONFIG}}
+            平台：${{env.WRT_TARGET}}
 
-      登录地址：${{env.WRT_IP}}
-      登录密码：${{env.WRT_PW}}
+            登录地址：${{env.WRT_IP}}
+            登录密码：${{env.WRT_PW}}
 
-      内核版本：${{env.WRT_KVER}}
-      插件列表：${{env.WRT_LIST}}
+            内核版本：${{env.WRT_KVER}}
+            插件列表：${{env.WRT_LIST}}
