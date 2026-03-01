@@ -1,5 +1,6 @@
 # 科学插件调整
-CONFIG_PACKAGE_luci-app-homeproxy=y
+# 已移至 IPQ60XX-AX18-LITE.txt，此处删除避免重复
+# CONFIG_PACKAGE_luci-app-homeproxy=y
 
 # 增加插件
 CONFIG_PACKAGE_luci-app-autoreboot=y
@@ -25,9 +26,9 @@ CONFIG_PACKAGE_kmod-nft-offload=y
 
 # 组件调整 - 极简
 CONFIG_PACKAGE_autocore=y
-CONFIG_PACKAGE_coremark=y
+# 已删除：coremark 为 CPU 跑分工具，精简固件无需
 CONFIG_PACKAGE_cpufreq=y
-CONFIG_PACKAGE_curl=y
+# 已删除：curl 命令行工具，精简固件无需
 CONFIG_PACKAGE_ip-full=y
 CONFIG_PACKAGE_luci-base=y
 CONFIG_PACKAGE_luci-compat=y
