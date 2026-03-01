@@ -1,14 +1,14 @@
-#CI项目
+# CI项目
 name: QCA-ALL
 
-#CI计划
+# CI计划
 on:
-  #自动编译：当Auto-Clean运行完成后
+  # 自动编译：当 Auto-Clean 运行完成后触发
   workflow_run:
     workflows: ["Auto-Clean"]
     types:
       - completed
-  #手动编译
+  # 手动编译
   workflow_dispatch:
     inputs:
       PACKAGE:
@@ -19,15 +19,18 @@ on:
         description: '仅输出配置文件，不编译固件。'
         default: 'false'
         required: false
-        type: boolean
+        # 修复：改为 string 类型，避免 boolean 在 workflow_call 传递时大小写不一致的问题
+        type: string
 
-#CI权限
-permissions: write-all
+# CI权限 - 修复：最小权限原则
+permissions:
+  contents: write
+  actions: write
 
-#CI任务
+# CI任务
 jobs:
   config:
-    name: ${{matrix.CONFIG}}
+    name: ${{ matrix.CONFIG }}
     strategy:
       fail-fast: false
       matrix:
@@ -36,30 +39,26 @@ jobs:
         SOURCE: [VIKINGYFY/immortalwrt]
         BRANCH: [main]
 
-    #调用公用编译核心WRT-CORE.yml
+    # 调用公用编译核心 WRT-CORE.yml
     uses: ./.github/workflows/WRT-CORE.yml
     with:
-      #编译配置
-      WRT_CONFIG: ${{matrix.CONFIG}}
-      #默认主题改为 bootstrap
+      # 编译配置
+      WRT_CONFIG: ${{ matrix.CONFIG }}
+      # 默认主题
       WRT_THEME: bootstrap
-      #默认主机名
+      # 默认主机名
       WRT_NAME: OpenWrt
-      #默认WIFI名称 (无WiFi，此处设置无效，但保留参数)
-      WRT_SSID: OWRT
-      #默认WIFI密码
-      WRT_WORD: 12345678
-      #默认地址
+      # 默认管理地址
       WRT_IP: 192.168.0.1
-      #默认密码
+      # 登录密码（当前设备无密码）
       WRT_PW: 无
-      #源码链接
-      WRT_REPO: https://github.com/${{matrix.SOURCE}}.git
-      #源码分支
-      WRT_BRANCH: ${{matrix.BRANCH}}
-      #源码名称
-      WRT_SOURCE: ${{matrix.SOURCE}}
-      #插件调整
-      WRT_PACKAGE: ${{inputs.PACKAGE}}
-      #仅输出配置文件
-      WRT_TEST: ${{inputs.TEST}}
+      # 源码链接
+      WRT_REPO: https://github.com/${{ matrix.SOURCE }}.git
+      # 源码分支
+      WRT_BRANCH: ${{ matrix.BRANCH }}
+      # 源码名称
+      WRT_SOURCE: ${{ matrix.SOURCE }}
+      # 插件调整
+      WRT_PACKAGE: ${{ inputs.PACKAGE }}
+      # 仅输出配置文件
+      WRT_TEST: ${{ inputs.TEST }}
