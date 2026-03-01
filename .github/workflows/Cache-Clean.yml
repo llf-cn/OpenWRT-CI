@@ -1,21 +1,26 @@
 name: Cache-Clean
 
 on:
+  # 每周日北京时间凌晨4点（UTC 20:00）清理缓存
   schedule:
     - cron: 0 20 * * 0
   workflow_dispatch:
 
-permissions: write-all
+# 修复：最小权限原则
+permissions:
+  contents: read
+  actions: write
 
 env:
-  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   cleanup:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Projects
-        uses: actions/checkout@main
+        # 修复：固定到具体版本，避免 @main 浮动引用
+        uses: actions/checkout@v4
 
       - name: Cache Clean
         run: gh cache delete --all
