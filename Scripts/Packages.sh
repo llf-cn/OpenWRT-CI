@@ -1,48 +1,57 @@
 #!/bin/bash
+# Packages.sh - 自定义软件包拉取与版本更新脚本
 
-#安装和更新软件包
+# 严格模式：任何命令失败或使用未定义变量时立即退出
+set -euo pipefail
+
+# 安装和更新软件包
 UPDATE_PACKAGE() {
 	local PKG_NAME=$1
 	local PKG_REPO=$2
 	local PKG_BRANCH=$3
-	local PKG_SPECIAL=$4
-	local PKG_LIST=("$PKG_NAME" $5)  # 第5个参数为自定义名称列表
+	local PKG_SPECIAL=${4:-}
+	local PKG_LIST=("$PKG_NAME" ${5:-})  # 第5个参数为自定义名称列表
 	local REPO_NAME=${PKG_REPO#*/}
 
-	echo " "
+	echo ""
 
 	# 删除本地可能存在的不同名称的软件包
 	for NAME in "${PKG_LIST[@]}"; do
-		# 查找匹配的目录
 		echo "Search directory: $NAME"
-		local FOUND_DIRS=$(find ../feeds/luci/ ../feeds/packages/ -maxdepth 3 -type d -iname "*$NAME*" 2>/dev/null)
+		# 修复：使用 mapfile 读取路径列表，避免路径含空格或特殊字符时出错
+		local FOUND_DIRS=()
+		mapfile -t FOUND_DIRS < <(find ../feeds/luci/ ../feeds/packages/ -maxdepth 3 -type d -iname "*$NAME*" 2>/dev/null)
 
-		# 删除找到的目录
-		if [ -n "$FOUND_DIRS" ]; then
-			while read -r DIR; do
+		if [ ${#FOUND_DIRS[@]} -gt 0 ]; then
+			for DIR in "${FOUND_DIRS[@]}"; do
 				rm -rf "$DIR"
 				echo "Delete directory: $DIR"
-			done <<< "$FOUND_DIRS"
+			done
 		else
-			echo "Not fonud directory: $NAME"
+			# 修复：拼写错误 "Not fonud" → "Not found"
+			echo "Not found directory: $NAME"
 		fi
 	done
 
-	# 克隆 GitHub 仓库
-	git clone --depth=1 --single-branch --branch $PKG_BRANCH "https://github.com/$PKG_REPO.git"
+	# 修复：git clone 加错误处理，克隆失败时立即终止，避免后续静默错误
+	echo "Cloning: https://github.com/$PKG_REPO.git (branch: $PKG_BRANCH)"
+	git clone --depth=1 --single-branch --branch "$PKG_BRANCH" "https://github.com/$PKG_REPO.git" || {
+		echo "ERROR: Failed to clone $PKG_REPO, please check the repository URL and branch name."
+		exit 1
+	}
 
 	# 处理克隆的仓库
 	if [[ "$PKG_SPECIAL" == "pkg" ]]; then
-		find ./$REPO_NAME/*/ -maxdepth 3 -type d -iname "*$PKG_NAME*" -prune -exec cp -rf {} ./ \;
-		rm -rf ./$REPO_NAME/
+		find "./$REPO_NAME/"*/ -maxdepth 3 -type d -iname "*$PKG_NAME*" -prune -exec cp -rf {} ./ \;
+		rm -rf "./$REPO_NAME/"
 	elif [[ "$PKG_SPECIAL" == "name" ]]; then
-		mv -f $REPO_NAME $PKG_NAME
+		mv -f "$REPO_NAME" "$PKG_NAME"
 	fi
 }
 
-# 调用示例
+# 调用示例：
 # UPDATE_PACKAGE "OpenAppFilter" "destan19/OpenAppFilter" "master" "" "custom_name1 custom_name2"
-# UPDATE_PACKAGE "open-app-filter" "destan19/OpenAppFilter" "master" "" "luci-app-appfilter oaf" 这样会把原有的open-app-filter，luci-app-appfilter，oaf相关组件删除，不会出现coremark错误。
+# UPDATE_PACKAGE "open-app-filter" "destan19/OpenAppFilter" "master" "" "luci-app-appfilter oaf"
 
 UPDATE_PACKAGE "homeproxy" "VIKINGYFY/homeproxy" "main"
 UPDATE_PACKAGE "momo" "nikkinikki-org/OpenWrt-momo" "main"
@@ -68,11 +77,12 @@ UPDATE_PACKAGE "quickfile" "sbwml/luci-app-quickfile" "main"
 UPDATE_PACKAGE "viking" "VIKINGYFY/packages" "main" "" "luci-app-timewol luci-app-wolplus"
 UPDATE_PACKAGE "vnt" "lmq8267/luci-app-vnt" "main"
 
-#更新软件包版本
+# 更新软件包版本至 GitHub 最新 Release
 UPDATE_VERSION() {
 	local PKG_NAME=$1
 	local PKG_MARK=${2:-false}
-	local PKG_FILES=$(find ./ ../feeds/packages/ -maxdepth 3 -type f -wholename "*/$PKG_NAME/Makefile")
+	local PKG_FILES
+	PKG_FILES=$(find ./ ../feeds/packages/ -maxdepth 3 -type f -wholename "*/$PKG_NAME/Makefile")
 
 	if [ -z "$PKG_FILES" ]; then
 		echo "$PKG_NAME not found!"
@@ -82,19 +92,40 @@ UPDATE_VERSION() {
 	echo -e "\n$PKG_NAME version update has started!"
 
 	for PKG_FILE in $PKG_FILES; do
-		local PKG_REPO=$(grep -Po "PKG_SOURCE_URL:=https://.*github.com/\K[^/]+/[^/]+(?=.*)" $PKG_FILE)
-		local PKG_TAG=$(curl -sL "https://api.github.com/repos/$PKG_REPO/releases" | jq -r "map(select(.prerelease == $PKG_MARK)) | first | .tag_name")
+		local PKG_REPO
+		PKG_REPO=$(grep -Po "PKG_SOURCE_URL:=https://.*github.com/\K[^/]+/[^/]+(?=.*)" "$PKG_FILE")
+		local PKG_TAG
+		PKG_TAG=$(curl -sL "https://api.github.com/repos/$PKG_REPO/releases" \
+			| jq -r "map(select(.prerelease == $PKG_MARK)) | first | .tag_name")
 
-		local OLD_VER=$(grep -Po "PKG_VERSION:=\K.*" "$PKG_FILE")
-		local OLD_URL=$(grep -Po "PKG_SOURCE_URL:=\K.*" "$PKG_FILE")
-		local OLD_FILE=$(grep -Po "PKG_SOURCE:=\K.*" "$PKG_FILE")
-		local OLD_HASH=$(grep -Po "PKG_HASH:=\K.*" "$PKG_FILE")
+		local OLD_VER OLD_URL OLD_FILE OLD_HASH
+		OLD_VER=$(grep -Po "PKG_VERSION:=\K.*" "$PKG_FILE")
+		OLD_URL=$(grep -Po "PKG_SOURCE_URL:=\K.*" "$PKG_FILE")
+		OLD_FILE=$(grep -Po "PKG_SOURCE:=\K.*" "$PKG_FILE")
+		OLD_HASH=$(grep -Po "PKG_HASH:=\K.*" "$PKG_FILE")
 
-		local PKG_URL=$([[ "$OLD_URL" == *"releases"* ]] && echo "${OLD_URL%/}/$OLD_FILE" || echo "${OLD_URL%/}")
+		local PKG_URL
+		PKG_URL=$([[ "$OLD_URL" == *"releases"* ]] && echo "${OLD_URL%/}/$OLD_FILE" || echo "${OLD_URL%/}")
 
-		local NEW_VER=$(echo $PKG_TAG | sed -E 's/[^0-9]+/\./g; s/^\.|\.$//g')
-		local NEW_URL=$(echo $PKG_URL | sed "s/\$(PKG_VERSION)/$NEW_VER/g; s/\$(PKG_NAME)/$PKG_NAME/g")
-		local NEW_HASH=$(curl -sL "$NEW_URL" | sha256sum | cut -d ' ' -f 1)
+		local NEW_VER
+		NEW_VER=$(echo "$PKG_TAG" | sed -E 's/[^0-9]+/\./g; s/^\.|\.$//g')
+
+		local NEW_URL
+		NEW_URL=$(echo "$PKG_URL" | sed "s/\$(PKG_VERSION)/$NEW_VER/g; s/\$(PKG_NAME)/$PKG_NAME/g")
+
+		# 修复：先下载内容并检查是否为空，再计算 hash
+		# 原写法：curl 下载失败时会算出空内容的 hash（e3b0c44...），导致 Makefile 写入错误 hash
+		local DOWNLOAD_CONTENT
+		DOWNLOAD_CONTENT=$(curl -sL --fail "$NEW_URL" 2>/dev/null) || {
+			echo "WARNING: Failed to download $NEW_URL, skipping $PKG_NAME update."
+			continue
+		}
+		if [ -z "$DOWNLOAD_CONTENT" ]; then
+			echo "WARNING: Downloaded content is empty for $NEW_URL, skipping $PKG_NAME update."
+			continue
+		fi
+		local NEW_HASH
+		NEW_HASH=$(echo "$DOWNLOAD_CONTENT" | sha256sum | cut -d ' ' -f 1)
 
 		echo "old version: $OLD_VER $OLD_HASH"
 		echo "new version: $NEW_VER $NEW_HASH"
@@ -109,6 +140,6 @@ UPDATE_VERSION() {
 	done
 }
 
-#UPDATE_VERSION "软件包名" "测试版，true，可选，默认为否"
+# UPDATE_VERSION "软件包名" "是否包含预发布版本（true/false，可选，默认 false）"
 UPDATE_VERSION "sing-box"
 #UPDATE_VERSION "tailscale"
