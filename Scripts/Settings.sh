@@ -67,6 +67,5 @@ if [[ "${WRT_TARGET^^}" == *"QUALCOMMAX"* ]]; then
 	else
 		echo "WARNING: DTS path not found: $DTS_PATH"
 	fi
-	#其他调整
-	echo "CONFIG_PACKAGE_kmod-usb-serial-qualcomm=y" >> ./.config
+	# 已删除：kmod-usb-serial-qualcomm（不需要 USB 4G 模块）
 fi
