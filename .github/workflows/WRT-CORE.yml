@@ -13,12 +13,6 @@ on:
       WRT_NAME:
         required: true
         type: string
-      WRT_SSID:
-        required: true
-        type: string
-      WRT_WORD:
-        required: true
-        type: string
       WRT_IP:
         required: true
         type: string
@@ -46,8 +40,6 @@ env:
   WRT_CONFIG: ${{ inputs.WRT_CONFIG }}
   WRT_THEME: ${{ inputs.WRT_THEME }}
   WRT_NAME: ${{ inputs.WRT_NAME }}
-  WRT_SSID: ${{ inputs.WRT_SSID }}
-  WRT_WORD: ${{ inputs.WRT_WORD }}
   WRT_IP: ${{ inputs.WRT_IP }}
   WRT_PW: ${{ inputs.WRT_PW }}
   WRT_REPO: ${{ inputs.WRT_REPO }}
@@ -93,7 +85,7 @@ jobs:
 
       - name: Clone Code
         run: |
-          git clone --depth=1 --single-branch --branch $WRT_BRANCH $WRT_REPO ./wrt/
+          git clone --depth=1 --single-branch --branch "$WRT_BRANCH" "$WRT_REPO" ./wrt/
           cd ./wrt/
           echo "WRT_HASH=$(git log -1 --pretty=format:'%h')" >> $GITHUB_ENV
           PROJECT_MIRRORS_FILE="./scripts/projectsmirrors.json"
@@ -107,7 +99,7 @@ jobs:
 
       - name: Check Caches
         id: check-cache
-        if: env.WRT_TEST != 'true'
+        if: ${{ env.WRT_TEST != 'true' }}
         uses: actions/cache@v4
         with:
           key: ${{ env.WRT_CONFIG }}-${{ env.WRT_INFO }}-${{ env.WRT_HASH }}
@@ -118,7 +110,7 @@ jobs:
             ./wrt/staging_dir/tool*
 
       - name: Update Caches
-        if: env.WRT_TEST != 'true'
+        if: ${{ env.WRT_TEST != 'true' }}
         run: |
           if [ -d "./wrt/staging_dir" ]; then
             find "./wrt/staging_dir" -type d -name "stamp" -not -path "*target*" | while read -r DIR; do
@@ -132,7 +124,7 @@ jobs:
           if [[ "${{ steps.check-cache.outputs.cache-hit }}" != 'true' ]]; then
             CACHE_LIST=$(gh cache list --key "$WRT_CONFIG-$WRT_INFO" | cut -f 1)
             for CACHE_KEY in $CACHE_LIST; do
-              gh cache delete $CACHE_KEY
+              gh cache delete "$CACHE_KEY"
             done
             echo "caches cleanup done!"
           fi
@@ -153,22 +145,21 @@ jobs:
         run: |
           cd ./wrt/
           if [[ "${WRT_CONFIG,,}" == *"test"* ]]; then
-            cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt >> .config
+            cat "$GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt" >> .config
           else
-            cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt $GITHUB_WORKSPACE/Config/GENERAL.txt >> .config
+            cat "$GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt" "$GITHUB_WORKSPACE/Config/GENERAL.txt" >> .config
           fi
           $GITHUB_WORKSPACE/Scripts/Settings.sh
-          make defconfig -j$(nproc)
-          make clean -j$(nproc)
+          make defconfig
 
       - name: Download Packages
-        if: env.WRT_TEST != 'true'
+        if: ${{ env.WRT_TEST != 'true' }}
         run: |
           cd ./wrt/
           make download -j$(nproc)
 
       - name: Compile Firmware
-        if: env.WRT_TEST != 'true'
+        if: ${{ env.WRT_TEST != 'true' }}
         run: |
           cd ./wrt/
           make -j$(nproc) || make -j1 V=s
@@ -189,20 +180,21 @@ jobs:
           cd ./wrt/
           mkdir -p ./upload/
           # 复制配置文件
-          cp -f ./.config ./upload/Config-"$WRT_CONFIG"-"$WRT_INFO"-"$WRT_BRANCH"-"$WRT_DATE".txt
-          
-          if [[ $WRT_TEST != 'true' ]]; then
+          cp -f ./.config "./upload/Config-${WRT_CONFIG}-${WRT_INFO}-${WRT_BRANCH}-${WRT_DATE}.txt"
+
+          if [[ "${WRT_TEST,,}" != 'true' ]]; then
             # 提取内核版本和插件列表
             echo "WRT_KVER=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^kernel - \K[\d\.]+' {} \; | head -n 1)" >> $GITHUB_ENV
             echo "WRT_LIST=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^luci-(app|theme)[^ ]*' {} \; | tr '\n' ' ')" >> $GITHUB_ENV
-            
+
             # 删除多余的描述文件
             find ./bin/targets/ -iregex ".*\(buildinfo\|json\|sha256sums\|packages\)$" -exec rm -rf {} +
-            
-            # 方案 A：直接移动固件，保留原名
-            find ./bin/targets/ -type f -iname "*$WRT_TARGET*" -exec mv -f {} ./upload/ \;
-            
-            make clean -j$(nproc)
+
+            # 移动固件到 upload 目录，保留原名
+            find ./bin/targets/ -type f -iname "*${WRT_TARGET}*" -exec mv -f {} ./upload/ \;
+
+            # 打包完成后清理编译产物，释放磁盘空间
+            make clean
           fi
 
       - name: Release Firmware
@@ -217,6 +209,5 @@ jobs:
             配置：${{ env.WRT_CONFIG }}
             平台：${{ env.WRT_TARGET }}
             登录地址：${{ env.WRT_IP }}
-            登录密码：${{ env.WRT_PW }}
             内核版本：${{ env.WRT_KVER }}
             插件列表：${{ env.WRT_LIST }}
