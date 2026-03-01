@@ -1,22 +1,26 @@
 name: Auto-Clean
 
 on:
-  #自动清理：每天早上6点
+  # 自动清理：每天北京时间早上6点（UTC 22:00）
   schedule:
     - cron: 0 22 * * *
-  #手动清理
+  # 手动清理
   workflow_dispatch:
 
-permissions: write-all
+# 修复：最小权限原则，仅申请必要的写权限
+permissions:
+  contents: write
+  actions: write
 
 jobs:
   auto_clean:
     runs-on: ubuntu-latest
     steps:
       - name: Delete old Releases and Workflows
-        uses: ophub/delete-releases-workflows@main
+        # 修复：固定到具体版本号，避免 @main 浮动引用的供应链风险
+        uses: ophub/delete-releases-workflows@v1.0.4
         with:
-          gh_token: ${{secrets.GITHUB_TOKEN}}
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
           delete_releases: true
           releases_keep_latest: 0
           delete_tags: true
