@@ -34,6 +34,7 @@ on:
       WRT_TEST:
         required: false
         type: string
+    secrets: inherit
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
