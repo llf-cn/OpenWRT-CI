@@ -44,7 +44,7 @@ jobs:
       #默认主题改为 bootstrap
       WRT_THEME: bootstrap
       #默认主机名
-      WRT_NAME: OpeWrt
+      WRT_NAME: OpenWrt
       #默认WIFI名称 (无WiFi，此处设置无效，但保留参数)
       WRT_SSID: OWRT
       #默认WIFI密码
