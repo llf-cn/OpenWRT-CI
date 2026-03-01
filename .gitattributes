@@ -1,2 +1,8 @@
-*.txt text eol=lf
-*.sh text eol=lf
+# 统一所有文本文件行尾为 LF，避免 Windows 环境下产生 CRLF 导致脚本执行失败
+*.txt  text eol=lf
+*.sh   text eol=lf
+# 修复：补充 yml/yaml，避免 Windows 下 Actions 配置文件行尾混乱
+*.yml  text eol=lf
+*.yaml text eol=lf
+# JSON 配置文件同样统一
+*.json text eol=lf
