@@ -41,6 +41,8 @@ jobs:
 
     # 调用公用编译核心 WRT-CORE.yml
     uses: ./.github/workflows/WRT-CORE.yml
+    # 修复：传递 secrets 给被调用的 workflow，否则 GITHUB_TOKEN 为空导致 Release 失败
+    secrets: inherit
     with:
       # 编译配置
       WRT_CONFIG: ${{ matrix.CONFIG }}
