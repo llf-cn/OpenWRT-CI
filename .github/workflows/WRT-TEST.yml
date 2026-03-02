@@ -3,48 +3,15 @@ name: WRT-TEST
 
 # CI计划
 on:
-  # 手动编译
+  # 手动触发
   workflow_dispatch:
     inputs:
-      CONFIG:
-        default: 'MEDIATEK'
-        required: true
-        type: choice
-        options:
-          - MEDIATEK
-          - ROCKCHIP
-          - X86
-          - IPQ50XX-WIFI-YES
-          - IPQ50XX-WIFI-NO
-          - IPQ60XX-WIFI-YES
-          - IPQ60XX-WIFI-NO
-          - IPQ807X-WIFI-YES
-          - IPQ807X-WIFI-NO
-          - TEST
-      SOURCE:
-        default: 'VIKINGYFY/immortalwrt'
-        required: true
-        type: choice
-        options:
-          - VIKINGYFY/immortalwrt
-          - immortalwrt/immortalwrt
-          - LiBwrt/openwrt-6.x
-          - qosmio/openwrt-ipq
-      BRANCH:
-        default: 'main'
-        required: true
-        type: string
       PACKAGE:
+        description: '手动调整插件包，多个请用\n符号隔开。'
         required: false
         type: string
-      TEST:
-        description: '仅输出配置文件，不编译固件。'
-        default: 'true'
-        required: true
-        # 修复：改为 string 类型，与 WRT-CORE.yml 中的字符串比较保持一致
-        type: string
 
-# CI权限 - 修复：最小权限原则
+# CI权限 - 最小权限原则
 permissions:
   contents: write
   actions: write
@@ -52,28 +19,28 @@ permissions:
 # CI任务
 jobs:
   config:
-    name: ${{ inputs.CONFIG }}
+    name: IPQ60XX-AX18-LITE
     # 调用公用编译核心 WRT-CORE.yml
     uses: ./.github/workflows/WRT-CORE.yml
     secrets: inherit
     with:
       # 编译配置
-      WRT_CONFIG: ${{ inputs.CONFIG }}
+      WRT_CONFIG: IPQ60XX-AX18-LITE
       # 默认主题
-      WRT_THEME: aurora
+      WRT_THEME: bootstrap
       # 默认主机名
-      WRT_NAME: OWRT
+      WRT_NAME: OpenWrt
       # 默认管理地址
-      WRT_IP: 192.168.10.1
+      WRT_IP: 192.168.0.1
       # 登录密码
       WRT_PW: 无
       # 源码链接
-      WRT_REPO: https://github.com/${{ inputs.SOURCE }}.git
+      WRT_REPO: https://github.com/VIKINGYFY/immortalwrt.git
       # 源码分支
-      WRT_BRANCH: ${{ inputs.BRANCH }}
+      WRT_BRANCH: main
       # 源码名称
-      WRT_SOURCE: ${{ inputs.SOURCE }}
+      WRT_SOURCE: VIKINGYFY/immortalwrt
       # 插件调整
       WRT_PACKAGE: ${{ inputs.PACKAGE }}
-      # 仅输出配置文件
-      WRT_TEST: ${{ inputs.TEST }}
+      # 仅输出配置文件，不编译固件
+      WRT_TEST: 'true'
