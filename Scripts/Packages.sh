@@ -141,5 +141,5 @@ UPDATE_VERSION() {
 }
 
 # UPDATE_VERSION "软件包名" "是否包含预发布版本（true/false，可选，默认 false）"
-UPDATE_VERSION "sing-box"
+#UPDATE_VERSION "sing-box"
 #UPDATE_VERSION "tailscale"
