@@ -36,8 +36,8 @@ CONFIG_IPV6=y
 CONFIG_PACKAGE_miniupnpd=y
 CONFIG_PACKAGE_luci-app-upnp=y
 
-# 开启 HomeProxy
-CONFIG_PACKAGE_luci-app-homeproxy=y
+# 科学插件
+CONFIG_PACKAGE_luci-app-openclash=y
 
 # 设置主题为 Bootstrap
 CONFIG_PACKAGE_luci-theme-bootstrap=y
