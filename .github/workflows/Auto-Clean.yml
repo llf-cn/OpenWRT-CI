@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Delete old Releases and Workflows
         # 修复：固定到具体版本号，避免 @main 浮动引用的供应链风险
-        uses: ophub/delete-releases-workflows@v1.0.4
+        uses: ophub/delete-releases-workflows@main
         with:
           gh_token: ${{ secrets.GITHUB_TOKEN }}
           delete_releases: true
