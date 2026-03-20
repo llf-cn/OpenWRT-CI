@@ -54,6 +54,9 @@ UPDATE_PACKAGE "passwall" "Openwrt-Passwall/openwrt-passwall" "main" "pkg"
 UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
 
 UPDATE_PACKAGE "luci-app-tailscale" "asvow/luci-app-tailscale" "main"
+# 修复 luci-app-tailscale 与 tailscale 本体的文件冲突
+rm -f ./luci-app-tailscale/root/etc/config/tailscale
+rm -f ./luci-app-tailscale/root/etc/init.d/tailscale
 
 UPDATE_PACKAGE "ddns-go" "sirpdboy/luci-app-ddns-go" "main"
 UPDATE_PACKAGE "diskman" "lisaac/luci-app-diskman" "master"
