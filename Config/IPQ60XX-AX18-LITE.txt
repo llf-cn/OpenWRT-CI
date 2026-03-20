@@ -39,6 +39,9 @@ CONFIG_PACKAGE_luci-app-upnp=y
 # 科学插件
 CONFIG_PACKAGE_luci-app-openclash=y
 
+# 开启 Tailscale
+CONFIG_PACKAGE_luci-app-tailscale=y
+
 # 设置主题为 Bootstrap
 CONFIG_PACKAGE_luci-theme-bootstrap=y
 
