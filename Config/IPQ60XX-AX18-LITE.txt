@@ -43,8 +43,8 @@ CONFIG_PACKAGE_luci-app-openclash=y
 CONFIG_PACKAGE_luci-theme-bootstrap=y
 
 # 开启 Tailscale（只用 luci 界面包，避免与主程序文件冲突）
-CONFIG_PACKAGE_luci-app-tailscale=y
-CONFIG_PACKAGE_tailscale=n
+CONFIG_PACKAGE_luci-app-tailscale=n
+CONFIG_PACKAGE_tailscale=y
 
 # 有线 NSS 完整加速（含 PPPoE 拨号加速）
 CONFIG_PACKAGE_kmod-qca-nss-ecm=y
