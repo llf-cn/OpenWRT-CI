@@ -18,7 +18,6 @@ UPDATE_PACKAGE() {
 	# 删除本地可能存在的不同名称的软件包
 	for NAME in "${PKG_LIST[@]}"; do
 		echo "Search directory: $NAME"
-		# 修复：使用 mapfile 读取路径列表，避免路径含空格或特殊字符时出错
 		local FOUND_DIRS=()
 		mapfile -t FOUND_DIRS < <(find ../feeds/luci/ ../feeds/packages/ -maxdepth 3 -type d -iname "*$NAME*" 2>/dev/null)
 
@@ -28,16 +27,15 @@ UPDATE_PACKAGE() {
 				echo "Delete directory: $DIR"
 			done
 		else
-			# 修复：拼写错误 "Not fonud" → "Not found"
 			echo "Not found directory: $NAME"
 		fi
 	done
 
-	# 修复：git clone 加错误处理，克隆失败时立即终止，避免后续静默错误
+	# git clone 失败时跳过该包，不中断整个编译流程（如仓库变私有或被删除）
 	echo "Cloning: https://github.com/$PKG_REPO.git (branch: $PKG_BRANCH)"
 	git clone --depth=1 --single-branch --branch "$PKG_BRANCH" "https://github.com/$PKG_REPO.git" || {
-		echo "ERROR: Failed to clone $PKG_REPO, please check the repository URL and branch name."
-		exit 1
+		echo "WARNING: Failed to clone $PKG_REPO, skipping."
+		return
 	}
 
 	# 处理克隆的仓库
@@ -48,10 +46,6 @@ UPDATE_PACKAGE() {
 		mv -f "$REPO_NAME" "$PKG_NAME"
 	fi
 }
-
-# 调用示例：
-# UPDATE_PACKAGE "OpenAppFilter" "destan19/OpenAppFilter" "master" "" "custom_name1 custom_name2"
-# UPDATE_PACKAGE "open-app-filter" "destan19/OpenAppFilter" "master" "" "luci-app-appfilter oaf"
 
 UPDATE_PACKAGE "momo" "nikkinikki-org/OpenWrt-momo" "main"
 UPDATE_PACKAGE "nikki" "nikkinikki-org/OpenWrt-nikki" "main"
@@ -64,15 +58,11 @@ UPDATE_PACKAGE "luci-app-tailscale" "asvow/luci-app-tailscale" "main"
 UPDATE_PACKAGE "ddns-go" "sirpdboy/luci-app-ddns-go" "main"
 UPDATE_PACKAGE "diskman" "lisaac/luci-app-diskman" "master"
 UPDATE_PACKAGE "easytier" "EasyTier/luci-app-easytier" "main"
-UPDATE_PACKAGE "fancontrol" "rockjake/luci-app-fancontrol" "main"
-UPDATE_PACKAGE "gecoosac" "lwb1978/openwrt-gecoosac" "main"
 UPDATE_PACKAGE "mosdns" "sbwml/luci-app-mosdns" "v5" "" "v2dat"
 UPDATE_PACKAGE "openlist2" "sbwml/luci-app-openlist2" "main"
 UPDATE_PACKAGE "partexp" "sirpdboy/luci-app-partexp" "main"
 UPDATE_PACKAGE "qbittorrent" "sbwml/luci-app-qbittorrent" "master" "" "qt6base qt6tools rblibtorrent"
-UPDATE_PACKAGE "qmodem" "FUjr/QModem" "main"
 UPDATE_PACKAGE "quickfile" "sbwml/luci-app-quickfile" "main"
-UPDATE_PACKAGE "viking" "VIKINGYFY/packages" "main" "" "luci-app-timewol luci-app-wolplus"
 UPDATE_PACKAGE "vnt" "lmq8267/luci-app-vnt" "main"
 
 # 更新软件包版本至 GitHub 最新 Release
@@ -111,8 +101,6 @@ UPDATE_VERSION() {
 		local NEW_URL
 		NEW_URL=$(echo "$PKG_URL" | sed "s/\$(PKG_VERSION)/$NEW_VER/g; s/\$(PKG_NAME)/$PKG_NAME/g")
 
-		# 修复：先下载内容并检查是否为空，再计算 hash
-		# 原写法：curl 下载失败时会算出空内容的 hash（e3b0c44...），导致 Makefile 写入错误 hash
 		local DOWNLOAD_CONTENT
 		DOWNLOAD_CONTENT=$(curl -sL --fail "$NEW_URL" 2>/dev/null) || {
 			echo "WARNING: Failed to download $NEW_URL, skipping $PKG_NAME update."
@@ -139,5 +127,5 @@ UPDATE_VERSION() {
 }
 
 # UPDATE_VERSION "软件包名" "是否包含预发布版本（true/false，可选，默认 false）"
-UPDATE_VERSION "sing-box"
+#UPDATE_VERSION "sing-box"
 #UPDATE_VERSION "tailscale"
