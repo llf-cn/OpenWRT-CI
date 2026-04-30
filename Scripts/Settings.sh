@@ -69,3 +69,18 @@ if [[ "${WRT_TARGET^^}" == *"QUALCOMMAX"* ]]; then
 	fi
 	# 已删除：kmod-usb-serial-qualcomm（不需要 USB 4G 模块）
 fi
+
+UCI_DEFAULTS="./package/base-files/files/etc/uci-defaults/99-extreme-optimization"
+mkdir -p "$(dirname "$UCI_DEFAULTS")"
+cat > "$UCI_DEFAULTS" << 'EOF'
+#!/bin/sh
+
+# 持久化内核内存参数（写入 sysctl.conf，重启后依然有效）
+cat >> /etc/sysctl.conf << 'SYSCTL'
+vm.swappiness=10
+vm.min_free_kbytes=16384
+vm.vfs_cache_pressure=50
+SYSCTL
+
+exit 0
+EOF
