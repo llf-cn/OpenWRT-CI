@@ -132,29 +132,3 @@ UPDATE_VERSION() {
 # UPDATE_VERSION "软件包名" "是否包含预发布版本（true/false，可选，默认 false）"
 #UPDATE_VERSION "sing-box"
 #UPDATE_VERSION "tailscale"
-
-# --- 极致内存与系统优化注入 ---
-
-# 1. 优化内核内存分配策略：优先使用物理内存，预留核心缓冲区
-# 2. 自动修复 OpenClash 脚本执行权限
-UCI_DEFAULTS="./package/base-files/files/etc/uci-defaults/99-extreme-optimization"
-mkdir -p "$(dirname "$UCI_DEFAULTS")"
-cat > "$UCI_DEFAULTS" << 'EOF'
-#!/bin/sh
-
-# 降低内核对虚拟内存的依赖倾向 (swappiness)
-echo "10" > /proc/sys/vm/swappiness
-# 提高内存回收时的最小空闲字节数，防止高并发时 OOM
-echo "16384" > /proc/sys/vm/min_free_kbytes
-# 优化目录索引缓存响应
-echo "100" > /proc/sys/vm/vfs_cache_pressure
-
-# 确保 OpenClash 所有 ruby 脚本拥有执行权限
-if [ -d "/usr/share/openclash" ]; then
-    chmod +x /usr/share/openclash/ruby* 2>/dev/null
-fi
-
-exit 0
-EOF
-
-echo "All optimizations (Memory, OpenClash fix, UPnP removal) have been injected!"
