@@ -81,6 +81,8 @@ vm.swappiness=10
 vm.min_free_kbytes=16384
 vm.vfs_cache_pressure=50
 SYSCTL
+UCI_DEFAULTS="./package/base-files/files/etc/uci-defaults/99-extreme-optimization"
+mkdir -p "$(dirname "$UCI_DEFAULTS")"
 cat > "$UCI_DEFAULTS" << 'EOF'
 #!/bin/sh
 cat >> /etc/sysctl.conf << 'SYSCTL'
