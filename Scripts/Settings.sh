@@ -81,6 +81,13 @@ vm.swappiness=10
 vm.min_free_kbytes=16384
 vm.vfs_cache_pressure=50
 SYSCTL
-
+cat > "$UCI_DEFAULTS" << 'EOF'
+#!/bin/sh
+cat >> /etc/sysctl.conf << 'SYSCTL'
+vm.swappiness=10
+vm.min_free_kbytes=16384
+vm.vfs_cache_pressure=50
+SYSCTL
+sysctl -p
 exit 0
 EOF
