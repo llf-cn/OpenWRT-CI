@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Projects
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Initialization Environment
         env:
@@ -100,7 +100,7 @@ jobs:
       - name: Check Caches
         id: check-cache
         if: ${{ env.WRT_TEST != 'true' }}
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.3
         with:
           key: ${{ env.WRT_CONFIG }}-${{ env.WRT_INFO }}-${{ env.WRT_HASH }}
           restore-keys: ${{ env.WRT_CONFIG }}-${{ env.WRT_INFO }}
