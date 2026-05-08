@@ -26,8 +26,6 @@ cat > "$UCI_DEFAULTS" << 'EOF'
 #!/bin/sh
 # 预置 LuCI 默认语言为简体中文
 uci set luci.main.lang='zh_cn'
-# 删除 Aurora 主题条目（未安装，避免用户误选）
-uci delete luci.themes.Aurora 2>/dev/null
 uci commit luci
 exit 0
 EOF
@@ -48,7 +46,6 @@ DTS_PATH="./target/linux/qualcommax/dts/"
 if [[ "${WRT_TARGET^^}" == *"QUALCOMMAX"* ]]; then
 	#取消nss相关feed
 	echo "CONFIG_FEED_nss_packages=n" >> ./.config
-	echo "CONFIG_FEED_sqm_scripts_nss=n" >> ./.config
 	#设置NSS版本
 	echo "CONFIG_NSS_FIRMWARE_VERSION_11_4=n" >> ./.config
 	if [[ "${WRT_CONFIG,,}" == *"ipq50"* ]]; then
