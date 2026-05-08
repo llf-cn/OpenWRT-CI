@@ -36,7 +36,10 @@ CONFIG_IPV6=y
 CONFIG_PACKAGE_luci-app-openclash=n
 
 # HomeProxy
-CONFIG_PACKAGE_luci-app-homeproxy=y
+CONFIG_PACKAGE_luci-app-homeproxy=n
+
+#nikii
+CONFIG_PACKAGE_luci-app-nikki=y
 
 # 设置主题为 Bootstrap
 CONFIG_PACKAGE_luci-theme-bootstrap=y
