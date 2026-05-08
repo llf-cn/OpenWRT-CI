@@ -134,13 +134,25 @@ jobs:
           cd ./wrt/
           ./scripts/feeds update -a
           ./scripts/feeds install -a
-
+          
+      - name: Adjust LuCI Menu Position
+        run: |
+          cd ./wrt/
+          JSON_FILE="feeds/luci/applications/luci-app-tailscale/root/usr/share/luci/menu.d/luci-app-tailscale.json"
+          if [ -f "$JSON_FILE" ]; then
+            sed -i 's|admin/vpn/tailscale|admin/services/tailscale|g' "$JSON_FILE"
+            echo "✓ Tailscale LuCI menu moved to Services"
+            cat "$JSON_FILE"
+          else
+            echo "⚠️ menu.d JSON not found, skip"
+          fi     
+          
       - name: Custom Packages
         run: |
           cd ./wrt/package/
           $GITHUB_WORKSPACE/Scripts/Packages.sh
           $GITHUB_WORKSPACE/Scripts/Handles.sh
-
+          
       - name: Custom Settings
         run: |
           cd ./wrt/
