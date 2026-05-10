@@ -53,3 +53,6 @@ CONFIG_PACKAGE_kmod-qca-nss-drv-pppoe=y
 # --- 找回常用网络工具 (解决 apk update 报错) ---
 CONFIG_PACKAGE_curl=y
 CONFIG_PACKAGE_libcurl=y
+
+# 添加 SFTP 子系统
+CONFIG_PACKAGE_openssh-sftp-server=y
